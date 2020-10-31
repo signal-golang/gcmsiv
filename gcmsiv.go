@@ -266,9 +266,9 @@ func polyval(hBytes [16]byte, input []byte) [16]byte {
 }
 
 const (
-	maxPlaintextLen  = 1 << 36
-	maxCiphertextLen = maxPlaintextLen + 16
-	maxADLen         = (1 << 61) - 1
+	maxPlaintextLen  int64 = 1 << 36
+	maxCiphertextLen int64 = maxPlaintextLen + 16
+	maxADLen         int64 = (1 << 61) - 1
 )
 
 type GCMSIV struct {
@@ -437,6 +437,8 @@ func cryptBytes(dst, src, initCtr []byte, block cipher.Block) []byte {
 	return dst
 }
 
+type plaintext int64
+
 func (ctx *GCMSIV) Seal(dst, nonce, plaintext, additionalData []byte) []byte {
 	if verbose {
 		log(fmt.Sprintf("Plaintext (%d bytes)", len(plaintext)), plaintext)
@@ -452,11 +454,11 @@ func (ctx *GCMSIV) Seal(dst, nonce, plaintext, additionalData []byte) []byte {
 		log("Nonce", nonce)
 	}
 
-	if len(plaintext) > maxPlaintextLen {
+	if int64(len(plaintext)) > maxPlaintextLen {
 		panic("gcmsiv: plaintext too large")
 	}
 
-	if len(additionalData) > maxADLen {
+	if int64(len(additionalData)) > maxADLen {
 		panic("gcmsiv: additional data too large")
 	}
 
@@ -472,11 +474,11 @@ func (ctx *GCMSIV) Seal(dst, nonce, plaintext, additionalData []byte) []byte {
 }
 
 func (ctx GCMSIV) Open(dst, nonce, ciphertext, additionalData []byte) (out []byte, err error) {
-	if len(additionalData) > maxADLen {
+	if int64(len(additionalData)) > maxADLen {
 		return nil, errors.New("gcmsiv: bad ciphertext length")
 	}
 
-	if len(ciphertext) < 16 || len(ciphertext) > maxCiphertextLen {
+	if int64(len(ciphertext)) < 16 || int64(len(ciphertext)) > maxCiphertextLen {
 		return nil, errors.New("gcmsiv: bad ciphertext length")
 	}
 
